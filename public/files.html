@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pliki serwera</title>
+    <link rel="icon" type="image/x-icon" href="IMG_3266.jpg">
+    <style>
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #181c20;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+      }
+      header, h1 {
+        background: #23272b;
+        color: #fff;
+        padding: 1.2em 2em 0.5em 2em;
+        margin: 0 0 1em 0;
+        box-shadow: 0 2px 8px #0002;
+      }
+      .container {
+        max-width: 700px;
+        margin: 2em auto;
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px #0004;
+        padding: 2em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1em;
+        background: #23272b;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      td, th {
+        border: 1px solid #333;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background: #23272b;
+        color: #b9bbbe;
+      }
+      tr:nth-child(even) { background: #202225; }
+      tr:hover { background: #2c3136; }
+      .file, a.file, label.file {
+        background: #5865f2;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4em 1em;
+        font-size: 1em;
+        cursor: pointer;
+        text-decoration: none;
+        margin-left: 0.5em;
+        transition: background 0.2s;
+        display: inline-block;
+      }
+      button, a.button {
+        background: #5865f2;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4em 1em;
+        font-size: 1em;
+        cursor: pointer;
+        text-decoration: none;
+        margin-left: 0.5em;
+        transition: background 0.2s;
+      }
+      button:hover, a.button:hover {
+        background: #4752c4;
+      }
+      #uploadForm { margin-bottom: 1em; }
+      a { color: #8ab4f8; }
+      @media (max-width: 700px) {
+        .container { padding: 1em; }
+        header, h1 { padding: 1em; }
+        table, td, th { font-size: 0.95em; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 id="title">Pliki</h1>
+    </header>
+    <div class="container">
+      <a href="/" class="button">← Powrót</a>
+      <br><br>
+      <form id="uploadForm">
+        <input type="file" name="file">
+        <button>Wyślij</button>
+      </form>
+      <table id="files"><thead><tr><th>Nazwa</th><th>Akcja</th></tr></thead><tbody></tbody></table>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const server = params.get('server');
+      const name = params.get('name') || server;
+      document.getElementById('title').textContent = name;
+      async function load(){
+        const r = await fetch('/api/files/' + server);
+        if (!r.ok) { document.querySelector('#files tbody').innerHTML = '<tr><td colspan="2">Błąd ładowania</td></tr>'; return; }
+        const j = await r.json();
+        const tbody = document.querySelector('#files tbody');
+        tbody.innerHTML = '';
+        j.items.forEach(it => {
+          const tr = document.createElement('tr');
+          const a = it.isDirectory ? it.name + '/' : `<a href="/api/files/${server}/download?file=${encodeURIComponent(it.name)}">${it.name}</a>`;
+          tr.innerHTML = `<td>${a}</td><td>${it.isDirectory ? '' : `<button onclick="del('${it.name}')">Usuń</button>`}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      async function del(file){
+        if(!confirm('Usunąć ' + file + '?')) return;
+        const r = await fetch('/api/files/' + server, { method: 'DELETE', headers: {'content-type':'application/json'}, body: JSON.stringify({ file }) });
+        if (r.ok) load(); else alert('Błąd usuwania');
+      }
+      document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const f = e.target.file.files[0];
+        if (!f) return alert('Wybierz plik');
+        const fd = new FormData(); fd.append('file', f);
+        const r = await fetch('/api/files/' + server + '/upload', { method: 'POST', body: fd });
+        if (r.ok) { load(); } else { alert('Błąd uploadu'); }
+      });
+      load();
+    </script>
+  </body>
+</html>

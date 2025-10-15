@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Menager Plików MUZ</title>
+    <link rel="icon" type="image/x-icon" href="IMG_3266.jpg">
+    <style>
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #181c20;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+      }
+      header, h1 {
+        background: #23272b;
+        color: #fff;
+        padding: 1.2em 2em 0.5em 2em;
+        margin: 0 0 1em 0;
+        box-shadow: 0 2px 8px #0002;
+      }
+      .container {
+        max-width: 600px;
+        margin: 2em auto;
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px #0004;
+        padding: 2em;
+      }
+      .server {
+        margin: 1em 0;
+        padding: 1em;
+        border-radius: 8px;
+        background: #23272b;
+        border: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+      }
+      .server:hover {
+        background: #2c3136;
+      }
+      button, a.button {
+        background: #5865f2;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5em 1.2em;
+        font-size: 1em;
+        cursor: pointer;
+        text-decoration: none;
+        margin-left: 1em;
+        transition: background 0.2s;
+      }
+      button:hover, a.button:hover {
+        background: #4752c4;
+      }
+      #auth { margin-bottom: 2em; }
+      @media (max-width: 700px) {
+        .container { padding: 1em; }
+        header, h1 { padding: 1em; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Menager Plików MUZ</h1>
+    </header>
+    <div class="container">
+      <div id="auth">
+        <a href="/auth/discord" class="button">> Zaloguj <</a>
+      </div>
+      <div id="servers"></div>
+    </div>
+    <script>
+    async function load() {
+      try {
+        const r = await fetch('/api/servers');
+        if (r.status === 401) return;
+        const data = await r.json();
+        const el = document.getElementById('servers');
+        if (!data || data.length === 0) { el.textContent = 'Brak serwerów'; return; }
+        el.innerHTML = '';
+        data.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'server';
+          div.innerHTML = `<b>${s.name}</b> <button onclick="openServer('${s.id}','${s.name.replace(/'/g,"\\'")}')">Otwórz</button>`;
+          el.appendChild(div);
+        });
+      } catch (e) { console.error(e); }
+    }
+    function openServer(id,name){
+      window.location = `/files.html?server=${id}&name=${encodeURIComponent(name)}`;
+    }
+    load();
+    </script>
+  </body>
+</html>
