@@ -1,5 +1,5 @@
 {
-  "name": "BOT-MUZ-GUI",
+  "name": "bot-muz-gui",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
