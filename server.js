@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const multer = require('multer');
-require('dotenv').config({ path: '/app/.env' });
+require('dotenv').config({ path: '../.env' });
 
 const { Client, GatewayIntentBits } = require('discord.js');
 
@@ -20,6 +20,7 @@ const client = new Client({
   ],
 });
 
+
 setInterval(async () => {
   const flagFile = path.join(__dirname, 'update_commands.flag');
   if (fs.existsSync(flagFile)) {
@@ -32,9 +33,9 @@ client.login(process.env.BOT_TOKEN);
 
 // === Environment ===
 const {
-  DISCORD_CLIENT_ID,
-  DISCORD_CLIENT_SECRET,
-  DISCORD_CALLBACK_URL,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  CALLBACK_URL,
   SESSION_SECRET,
   BASE_MUSIC_DIR,
   BOT_TOKEN,
@@ -42,7 +43,7 @@ const {
   PORT = 3000,
 } = process.env;
 
-if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !DISCORD_CALLBACK_URL) {
+if (!CLIENT_ID || !CLIENT_SECRET || !CALLBACK_URL) {
   console.warn('⚠️ Discord OAuth credentials missing in .env');
 }
 
@@ -62,13 +63,13 @@ passport.serializeUser((user, done) => {
 });
 passport.deserializeUser((obj, done) => done(null, obj));
 
-if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET && DISCORD_CALLBACK_URL) {
+if (CLIENT_ID && CLIENT_SECRET && CALLBACK_URL) {
   passport.use(
     new DiscordStrategy(
       {
-        clientID: DISCORD_CLIENT_ID,
-        clientSecret: DISCORD_CLIENT_SECRET,
-        callbackURL: DISCORD_CALLBACK_URL,
+        clientID: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        callbackURL: CALLBACK_URL,
         scope: SCOPES,
       },
       (accessToken, refreshToken, profile, done) => {
@@ -245,7 +246,7 @@ app.post('/api/files/:serverId/upload', ensureAuth, upload.single('file'), async
     try {
       const { REST, Routes } = require('discord.js');
       const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
-      const existing = await rest.get(Routes.applicationCommands(DISCORD_CLIENT_ID));
+      const existing = await rest.get(Routes.applicationCommands(CLIENT_ID));
 
       const COM_DIR = dir;
       const files = fs.readdirSync(COM_DIR)
@@ -264,7 +265,7 @@ app.post('/api/files/:serverId/upload', ensureAuth, upload.single('file'), async
         return cmd;
       });
 
-      await rest.put(Routes.applicationCommands(DISCORD_CLIENT_ID), { body: updated });
+      await rest.put(Routes.applicationCommands(CLIENT_ID), { body: updated });
       console.log(`✅ Komendy zaktualizowane po uploadzie (${files.length} plików)`);
     } catch (err) {
       console.error('❌ Błąd przy aktualizacji komend po uploadzie:', err);
@@ -290,7 +291,7 @@ app.delete('/api/files/:serverId', ensureAuth, async (req, res) => {
       try {
         const { REST, Routes } = require('discord.js');
         const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
-        const existing = await rest.get(Routes.applicationCommands(DISCORD_CLIENT_ID));
+        const existing = await rest.get(Routes.applicationCommands(CLIENT_ID));
 
         const COM_DIR = dir;
         const files = fs.readdirSync(COM_DIR)
@@ -309,7 +310,7 @@ app.delete('/api/files/:serverId', ensureAuth, async (req, res) => {
           return cmd;
         });
 
-        await rest.put(Routes.applicationCommands(DISCORD_CLIENT_ID), { body: updated });
+        await rest.put(Routes.applicationCommands(CLIENT_ID), { body: updated });
         console.log(`✅ Komendy zaktualizowane po usunięciu (${files.length} plików)`);
       } catch (err) {
         console.error('❌ Błąd przy aktualizacji komend po usunięciu:', err);
